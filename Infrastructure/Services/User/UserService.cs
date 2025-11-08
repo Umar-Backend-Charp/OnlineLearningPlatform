@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using AutoMapper;
 using Domain.Dto;
+using Domain.Dto.Course;
+using Domain.Dto.StudentSummary;
 using Domain.Dto.User;
 using Domain.Filter;
 using Infrastructure.Data;
@@ -40,12 +42,12 @@ public class UserService(DataContext context, IMapper mapper, UserManager<Domain
     public async Task<PaginationResponse<List<GetUserDto>>> GetUsers(UserFilter filter)
     {
         var query = context.Users.Where(x => !x.IsDeleted).AsQueryable();
-        // if (filter.Role.HasValue)
-        // {
-        //     var usersInRole = await userManager.GetUsersInRoleAsync(filter.Role.Value.ToString());
-        //     var userIds = usersInRole.Select(x => x.Id).ToList();
-        //     query = query.Where(x => userIds.Contains(x.Id));
-        // }
+        if (filter.Role.HasValue)
+        {
+            var usersInRole = await userManager.GetUsersInRoleAsync(filter.Role.Value.ToString());
+            var userIds = usersInRole.Select(x => x.Id).ToList();
+            query = query.Where(x => userIds.Contains(x.Id));
+        }
         
         if (filter.Age.HasValue)
         {
@@ -65,7 +67,15 @@ public class UserService(DataContext context, IMapper mapper, UserManager<Domain
         {
             return new PaginationResponse<List<GetUserDto>>(HttpStatusCode.NotFound, "Users not found");
         }
+        
         var usersMap = mapper.Map<List<GetUserDto>>(res);
+        foreach (var userDto in usersMap)
+        {
+            var identityUser = await userManager.FindByIdAsync(userDto.Id);
+            var roles = await userManager.GetRolesAsync(identityUser!);
+            userDto.Roles = roles.ToList();
+        }
+        
         return new PaginationResponse<List<GetUserDto>>(usersMap, totalRecord, filter.PageNumber, filter.PageSize);
     }
 
@@ -73,7 +83,37 @@ public class UserService(DataContext context, IMapper mapper, UserManager<Domain
     {
         var theUser = await context.Users.FindAsync(id);
         if (theUser == null) return new Response<GetUserDto>(HttpStatusCode.NotFound, "User not found");
+        
+        var userRoles = await userManager.GetRolesAsync(theUser);
         var map = mapper.Map<GetUserDto>(theUser);
+        map.Roles = userRoles.ToList();
+        
         return new Response<GetUserDto>(map);
+    }
+
+    public async Task<Response<StudentSummaryDto>> GetStudentSummary(string studentId)
+    {
+        var student = await userManager.FindByIdAsync(studentId);
+        if (student is null) return new Response<StudentSummaryDto>(HttpStatusCode.NotFound, "Student not found");
+        
+        var courses = await context.StudentCourses
+            .Include(sc => sc.Course)
+            .Where(sc => sc.UserId == studentId)
+            .Select(sc => sc.Course)
+            .ToListAsync();
+
+        var mappedCourses = mapper.Map<List<GetCourseForSummaryDto>>(courses);
+
+        var summary = new StudentSummaryDto()
+        {
+            StudentId = studentId,
+            FirstName = student.FirstName,
+            LastName = student.LastName,
+            Age = student.Age,
+            Email = student.Email!,
+            Courses = mappedCourses
+        };
+        
+        return new Response<StudentSummaryDto>(summary);
     }
 }

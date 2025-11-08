@@ -3,11 +3,19 @@ using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Data.Seed;
 using Infrastructure.Profile;
+using Infrastructure.Repositories.Answer;
+using Infrastructure.Repositories.Exam;
+using Infrastructure.Repositories.Lesson;
+using Infrastructure.Repositories.Question;
+using Infrastructure.Repositories.StudentExamResult;
 using Infrastructure.Services;
+using Infrastructure.Services.Answer;
 using Infrastructure.Services.Auth;
 using Infrastructure.Services.Course;
 using Infrastructure.Services.Exam;
 using Infrastructure.Services.Lesson;
+using Infrastructure.Services.Question;
+using Infrastructure.Services.StudentExamResult;
 using Infrastructure.Services.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -64,11 +72,23 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
+builder.Services.AddScoped<ILessonRepository, LessonRepository>();
+builder.Services.AddScoped<IExamRepository, ExamRepository>();
 builder.Services.AddScoped<IExamService, ExamService>();
+builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
+builder.Services.AddScoped<IAnswerRepository, AnswerRepository>();
+builder.Services.AddScoped<IAnswerService, AnswerService>();
+builder.Services.AddScoped<IStudentExamResultRepository, StudentExamResultRepository>();
+builder.Services.AddScoped<IStudentExamService, StudentExamResultService>();
 builder.Services.AddAutoMapper(typeof(ApplicationProfile));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<Seeder>();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(config =>
+    {
+        config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters()

@@ -4,9 +4,9 @@ namespace Domain.Entities;
 
 public class Exam
 {
-    public int Id { get; set; }
-    public int CourseId { get; set; }
-    public string Title { get; set; }
+    public Guid Id { get; set; }
+    public Guid CourseId { get; set; }
+    public string Title { get; set; } = String.Empty;
     public int MaxScore { get; set; }
     public DateTime CreateAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdateAt { get; set; }

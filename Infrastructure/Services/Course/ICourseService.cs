@@ -8,7 +8,8 @@ public interface ICourseService
 {
     Task<Response<string>> CreateCourse(CreateCourseDto dto);
     Task<Response<string>> UpdateCourse(UpdateCourseDto dto);
-    Task<Response<string>> DeleteCourse(int id);
+    Task<Response<string>> DeleteCourse(string id);
     Task<Response<List<GetCourseDto>>> GetCourses();
-    Task<Response<GetCourseDto>> GetCourseById(int id);
+    Task<Response<GetCourseDto>> GetCourseById(string id);
+    Task<Response<string>> EnrollStudent(string courseId, string studentId);
 }

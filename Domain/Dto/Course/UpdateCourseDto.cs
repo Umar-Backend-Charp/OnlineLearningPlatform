@@ -4,8 +4,8 @@ namespace Domain.Dto.Course;
 
 public class UpdateCourseDto
 {
-    public int Id { get; set; }
-    public string Title { get; set; }
+    public Guid Id { get; set; }
+    public required string Title { get; set; }
     public string? Description { get; set; }
     public Level Level { get; set; }
     public double Price { get; set; }

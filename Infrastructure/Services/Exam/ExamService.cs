@@ -1,93 +1,70 @@
 ﻿using System.Net;
+using AutoMapper;
 using Domain.Dto.Exam;
+using Domain.Filter;
 using Infrastructure.Data;
+using Infrastructure.Repositories.Exam;
 using Infrastructure.Response;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Services.Exam;
 
-public class ExamService(DataContext context) : IExamService
+public class ExamService(IExamRepository examRepository, IMapper mapper) : IExamService
 {
-    public async Task<Response<string>> CreateExam(CreateExamDto dto)
+    public async Task<Response<string>> CreateExamAsync(CreateExamDto dto)
     {
-        var exam = new Domain.Entities.Exam
-        {
-            CourseId = dto.CourseId,
-            Title = dto.Title,
-            MaxScore = dto.MaxScore,
-            CreateAt = DateTime.Now,
-        };
+        var mapped = mapper.Map<Domain.Entities.Exam>(dto);
+            
+        var result = await examRepository.CreateExamAsync(mapped);
 
-        await context.Exams.AddAsync(exam);
-        var effect = await context.SaveChangesAsync();
-
-        return effect > 0
+        return result > 0
             ? new Response<string>(HttpStatusCode.OK, "Exam created successfully")
             : new Response<string>(HttpStatusCode.BadRequest, "Exam creation failed");
     }
 
-    public async Task<Response<string>> UpdateExam(UpdateExamDto dto)
+    public async Task<Response<string>> UpdateExamAsync(UpdateExamDto dto)
     {
-        var oldExam = await context.Exams.FirstOrDefaultAsync(x => x.Id == dto.Id);
-        if (oldExam == null) return new Response<string>(HttpStatusCode.NotFound, "Exam not found");
-
-        oldExam.Title = dto.Title;
-        oldExam.MaxScore = dto.MaxScore;
-        oldExam.CourseId = dto.CourseId;
-        oldExam.UpdateAt = DateTime.UtcNow;
-
-        var effect = await context.SaveChangesAsync();
-        return effect > 0
+        var oldExam = await examRepository.GetExamByIdAsync(dto.Id);
+        if (oldExam is null)
+            return new Response<string>(HttpStatusCode.NotFound, "Exam not found");
+        
+        mapper.Map(dto, oldExam);
+        var result = await examRepository.UpdateExamAsync(oldExam);
+        
+        return result > 0
             ? new Response<string>(HttpStatusCode.OK, "Exam updated successfully")
             : new Response<string>(HttpStatusCode.BadRequest, "Exam updating failed");
     }
 
-    public async Task<Response<string>> DeleteExam(int id)
+    public async Task<Response<string>> DeleteExamAsync(Guid id)
     {
-        var exam = await context.Exams.FirstOrDefaultAsync(x => x.Id == id);
-        if (exam == null) return new Response<string>(HttpStatusCode.NotFound, "Exam not found");
-
-        exam.IsDeleted = true;
-        exam.UpdateAt = DateTime.UtcNow;
-        var effect = await context.SaveChangesAsync();
-
-        return effect > 0
+        var result = await examRepository.DeleteExamAsync(id);
+        if (result is null)
+            return new Response<string>(HttpStatusCode.NotFound, "Exam not found");
+        
+        return result > 0
             ? new Response<string>(HttpStatusCode.OK, "Exam deleted successfully")
             : new Response<string>(HttpStatusCode.BadRequest, "Exam deletion failed");
     }
 
-    public async Task<Response<List<GetExamDto>>> GetExams()
+    public async Task<PaginationResponse<List<GetExamDto>>> GetExamsAsync(ExamFilter filter)
     {
-        var exams = await context.Exams.Where(x => !x.IsDeleted).ToListAsync();
-        var dtos = exams.Select(x => new GetExamDto
-        {
-            Id = x.Id,
-            Title = x.Title,
-            CourseId = x.CourseId,
-            MaxScore = x.MaxScore,
-            IsDeleted = x.IsDeleted,
-            CreateAt = x.CreateAt,
-            UpdateAt = x.UpdateAt
-        }).ToList();
+        var exams = await examRepository.GetExamsAsync(filter);
+        if (exams is null)
+            return new PaginationResponse<List<GetExamDto>>(HttpStatusCode.NotFound, "Exams not found");
 
-        return new Response<List<GetExamDto>>(dtos);
+        var mappedList = mapper.Map<List<GetExamDto>>(exams);
+        
+        return new PaginationResponse<List<GetExamDto>>(mappedList, exams.Count, filter.PageNumber, filter.PageSize);
     }
 
-    public async Task<Response<GetExamDto>> GetExamById(int id)
+    public async Task<Response<GetExamDto>> GetExamByIdAsync(Guid id)
     {
-        var exam = await context.Exams.FirstOrDefaultAsync(x => x.Id == id);
-        if (exam == null) return new Response<GetExamDto>(HttpStatusCode.NotFound, "Exam not found");
-
-        var dto = new GetExamDto
-        {
-            Id = exam.Id,
-            Title = exam.Title,
-            CourseId = exam.CourseId,
-            MaxScore = exam.MaxScore,
-            IsDeleted = exam.IsDeleted,
-            CreateAt = exam.CreateAt,
-            UpdateAt = exam.UpdateAt
-        };
+        var exam = await examRepository.GetExamByIdAsync(id);
+        if (exam is null) 
+            return new Response<GetExamDto>(HttpStatusCode.NotFound, "Exam not found");
+        
+        var dto = mapper.Map<GetExamDto>(exam);
 
         return new Response<GetExamDto>(dto);
     }

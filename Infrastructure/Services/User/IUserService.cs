@@ -1,4 +1,5 @@
 ﻿using Domain.Dto;
+using Domain.Dto.StudentSummary;
 using Domain.Dto.User;
 using Domain.Filter;
 using Infrastructure.Response;
@@ -11,4 +12,5 @@ public interface IUserService
     Task<Response<string>> DeleteUser(string id);
     Task<PaginationResponse<List<GetUserDto>>> GetUsers(UserFilter filter);
     Task<Response<GetUserDto>> GetUser(string id);
+    Task<Response<StudentSummaryDto>> GetStudentSummary(string studentId);
 }

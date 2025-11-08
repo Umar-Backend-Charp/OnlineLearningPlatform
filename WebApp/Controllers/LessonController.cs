@@ -1,4 +1,5 @@
 ﻿using Domain.Dto.Lesson;
+using Domain.Filter;
 using Infrastructure.Response;
 using Infrastructure.Services.Lesson;
 using Microsoft.AspNetCore.Mvc;
@@ -11,21 +12,21 @@ public class LessonController(ILessonService service) : ControllerBase
 {
     [HttpPost]
     public Task<Response<string>> CreateLesson(CreateLessonDto dto)
-        => service.CreateLesson(dto);
+        => service.CreateLessonAsync(dto);
     
     [HttpGet]
-    public Task<Response<List<GetLessonDto>>> GetLessons()
-        => service.GetLessons();
+    public Task<Response<List<GetLessonDto>>> GetLessons([FromQuery] LessonFilter filter)
+        => service.GetLessonsAsync(filter);
     
     [HttpPut]
     public Task<Response<string>> UpdateLesson(UpdateLessonDto dto)
-        => service.UpdateLesson(dto);
+        => service.UpdateLessonAsync(dto);
 
     [HttpDelete]
-    public Task<Response<string>> DeleteLesson(int id)
-        => service.DeleteLesson(id);
+    public Task<Response<string>> DeleteLesson(Guid id)
+        => service.DeleteLessonAsync(id);
     
     [HttpGet("{id}")]
-    public Task<Response<GetLessonDto>> GetLessonById(int id)
-        => service.GetLessonById(id);
+    public Task<Response<GetLessonDto>> GetLessonById(Guid id)
+        => service.GetLessonByIdAsync(id);
 }

@@ -1,5 +1,6 @@
 ﻿using Domain.Dto;
 using Domain.Dto.Auth;
+using Domain.Dto.StudentSummary;
 using Domain.Dto.User;
 using Domain.Entities;
 using Domain.Filter;
@@ -14,27 +15,36 @@ namespace WebApp.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserController
-    (IUserService userService) : ControllerBase
+public class UserController : ControllerBase
 {
-    [Authorize(Roles = "Admin")]
-    [HttpGet]
-    public Task<PaginationResponse<List<GetUserDto>>> GetUsers([FromQuery] UserFilter filter)
-        => userService.GetUsers(filter);
-    
-    [Authorize(Roles = "Admin")]
-    [HttpPut]
-    public Task<Response<string>> UpdateUser(UpdateUserDto dto)
-        => userService.UpdateUser(dto);
-    
-    [Authorize(Roles = "Admin")]
-    [HttpDelete]
-    public Task<Response<string>> DeleteUser(string id)
-        => userService.DeleteUser(id);
-    
-    [Authorize]
-    [HttpGet("{id}")]
-    public Task<Response<GetUserDto>> GetUser(string id)
-        => userService.GetUser(id);
-}
+    private readonly IUserService _userService;
 
+    public UserController(IUserService userService)
+    {
+        _userService = userService;
+    }
+
+    // [Authorize(Roles = "Admin")]
+    [HttpGet]
+    public async Task<PaginationResponse<List<GetUserDto>>> GetUsers([FromQuery] UserFilter filter)
+        => await _userService.GetUsers(filter);
+    
+    // [Authorize(Roles = "Admin")]
+    [HttpPut]
+    public async Task<Response<string>> UpdateUser([FromBody] UpdateUserDto dto)
+        => await _userService.UpdateUser(dto);
+    
+    // [Authorize(Roles = "Admin")]
+    [HttpDelete("{id}")]
+    public async Task<Response<string>> DeleteUser(string id)
+        => await _userService.DeleteUser(id);
+    
+    // [Authorize(Roles = "Admin")]
+    [HttpGet("{id}")]
+    public async Task<Response<GetUserDto>> GetUser(string id)
+        => await _userService.GetUser(id);
+
+    [HttpGet("{id}/courses/summary")]
+    public async Task<Response<StudentSummaryDto>> GetUserSummary(string id)
+        => await _userService.GetStudentSummary(id);
+}

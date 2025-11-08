@@ -2,7 +2,6 @@
 using Domain.Enums;
 
 namespace Domain.Dto.User;
-
 public class UpdateUserDto
 {
     public string Id { get; set; }
@@ -12,7 +11,7 @@ public class UpdateUserDto
     public string LastName { get; set; }
     [Range(5, 99, ErrorMessage = "Age must be between 5 and 99.")]
     public int Age { get; set; }
-    public string Phone { get; set; }
+    public string? PhoneNumber { get; set; }
     [MaxLength(50)]
     public string Address { get; set; }
     [EmailAddress]
