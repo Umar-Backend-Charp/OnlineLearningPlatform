@@ -24,26 +24,27 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
-    // [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<PaginationResponse<List<GetUserDto>>> GetUsers([FromQuery] UserFilter filter)
         => await _userService.GetUsers(filter);
     
-    // [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPut]
     public async Task<Response<string>> UpdateUser([FromBody] UpdateUserDto dto)
         => await _userService.UpdateUser(dto);
     
-    // [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<Response<string>> DeleteUser(string id)
         => await _userService.DeleteUser(id);
     
-    // [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
     public async Task<Response<GetUserDto>> GetUser(string id)
         => await _userService.GetUser(id);
 
+    [Authorize(Roles = "User, Admin")]
     [HttpGet("{id}/courses/summary")]
     public async Task<Response<StudentSummaryDto>> GetUserSummary(string id)
         => await _userService.GetStudentSummary(id);
