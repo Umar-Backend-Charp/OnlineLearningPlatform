@@ -32,8 +32,8 @@ public class Seeder(UserManager<User> userManager, RoleManager<IdentityRole> rol
 
     public async Task<bool> SeedAdmin()
     {
-        var res = await context.Users.FirstOrDefaultAsync(x => x.FirstName == "Admin" && x.LastName == "Adminov");
-        if (res == null)
+        var existingAdmin = await context.Users.FirstOrDefaultAsync(x => x.FirstName == "Admin" && x.LastName == "Adminov");
+        if (existingAdmin == null)
         {
             var admin = new User()
             {
